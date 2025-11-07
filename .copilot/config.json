@@ -1,0 +1,46 @@
+{
+  "project_name": "Prometheus Metric Summarizer",
+  "description": "Converts Prometheus range query JSON into metric-type aware summaries for agentic pipelines and AI-Ops.",
+  "language": "python",
+  "primary_entrypoints": [
+    "src/promsum/cli.py",
+    "src/promsum/gauge.py",
+    "src/promsum/counter.py",
+    "src/promsum/histogram.py",
+    "src/promsum/summary.py"
+  ],
+  "example_inputs": ["examples/sample_gauge.json"],
+  "run_commands": [
+    "./run_venv.sh",
+    "python -m promsum.cli --metric-type gauge --input examples/sample_gauge.json"
+  ],
+  "documentation_files": [
+    "README.md",
+    "src/prometheus_metric_summarizer.egg-info/PKG-INFO",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "auto_generated_files": [
+    "src/prometheus_metric_summarizer.egg-info/SOURCES.txt",
+    "src/prometheus_metric_summarizer.egg-info/dependency_links.txt",
+    "src/prometheus_metric_summarizer.egg-info/entry_points.txt",
+    "src/prometheus_metric_summarizer.egg-info/top_level.txt"
+  ],
+  "documentation_notes": {
+    "README.md": "Main user-facing documentation - update this first",
+    "PKG-INFO": "Package metadata - auto-generated but should be kept in sync with README.md",
+    "auto_generated": "SOURCES.txt and other .egg-info files are auto-generated during package build - do not edit manually",
+    "output_format": "All metric types return: count/num_data_points, timestamps, duration. Counter/Gauge use 'count', Histogram/Summary use 'num_data_points' + 'count' (observations)",
+    "metric_types": {
+      "counter": "count, start/end values, delta, rates",
+      "gauge": "count, start/end values, min/max/mean/median/stddev, trend, change",
+      "histogram": "num_data_points, count (observations), sum, avg, quantiles (p50/p90/p95/p99), dominant_bucket",
+      "summary": "num_data_points, count (observations), sum, avg, quantiles"
+    }
+  },
+  "environment": {
+    "python_version": "3.10",
+    "requirements": "requirements.txt",
+    "setup_script": "run_venv.sh"
+  }
+}

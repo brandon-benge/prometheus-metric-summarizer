@@ -1,0 +1,91 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "matrix",
+    "result": [
+      {
+        "metric": {
+          "__name__": "rpc_latency_seconds",
+          "quantile": "0.5",
+          "method": "post"
+        },
+        "values": [
+          [
+            1731003000,
+            "0.12"
+          ],
+          [
+            1731003120,
+            "0.15"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "rpc_latency_seconds",
+          "quantile": "0.9",
+          "method": "post"
+        },
+        "values": [
+          [
+            1731003000,
+            "0.3"
+          ],
+          [
+            1731003120,
+            "0.38"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "rpc_latency_seconds",
+          "quantile": "0.99",
+          "method": "post"
+        },
+        "values": [
+          [
+            1731003000,
+            "0.9"
+          ],
+          [
+            1731003120,
+            "1.0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "rpc_latency_seconds_sum",
+          "method": "post"
+        },
+        "values": [
+          [
+            1731003000,
+            "10.0"
+          ],
+          [
+            1731003120,
+            "28.0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "rpc_latency_seconds_count",
+          "method": "post"
+        },
+        "values": [
+          [
+            1731003000,
+            "40"
+          ],
+          [
+            1731003120,
+            "100"
+          ]
+        ]
+      }
+    ]
+  }
+}

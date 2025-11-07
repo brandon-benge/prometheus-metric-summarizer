@@ -1,0 +1,125 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "matrix",
+    "result": [
+      {
+        "metric": {
+          "__name__": "http_request_duration_seconds_bucket",
+          "le": "0.1",
+          "method": "GET"
+        },
+        "values": [
+          [
+            1731003000,
+            "10"
+          ],
+          [
+            1731003120,
+            "30"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_request_duration_seconds_bucket",
+          "le": "0.2",
+          "method": "GET"
+        },
+        "values": [
+          [
+            1731003000,
+            "20"
+          ],
+          [
+            1731003120,
+            "55"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_request_duration_seconds_bucket",
+          "le": "0.5",
+          "method": "GET"
+        },
+        "values": [
+          [
+            1731003000,
+            "25"
+          ],
+          [
+            1731003120,
+            "70"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_request_duration_seconds_bucket",
+          "le": "1",
+          "method": "GET"
+        },
+        "values": [
+          [
+            1731003000,
+            "27"
+          ],
+          [
+            1731003120,
+            "75"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_request_duration_seconds_bucket",
+          "le": "+Inf",
+          "method": "GET"
+        },
+        "values": [
+          [
+            1731003000,
+            "30"
+          ],
+          [
+            1731003120,
+            "80"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_request_duration_seconds_sum",
+          "method": "GET"
+        },
+        "values": [
+          [
+            1731003000,
+            "12.0"
+          ],
+          [
+            1731003120,
+            "38.0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_request_duration_seconds_count",
+          "method": "GET"
+        },
+        "values": [
+          [
+            1731003000,
+            "30"
+          ],
+          [
+            1731003120,
+            "80"
+          ]
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "matrix",
+    "result": [
+      {
+        "metric": {
+          "namespace": "payments",
+          "pod": "worker-1",
+          "instance": "10.1.2.1:9100"
+        },
+        "values": [
+          [
+            1731003000,
+            "0.42"
+          ],
+          [
+            1731003060,
+            "0.47"
+          ],
+          [
+            1731003120,
+            "0.55"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "namespace": "payments",
+          "pod": "worker-2",
+          "instance": "10.1.2.2:9100"
+        },
+        "values": [
+          [
+            1731003000,
+            "0.35"
+          ],
+          [
+            1731003060,
+            "0.40"
+          ],
+          [
+            1731003120,
+            "0.52"
+          ]
+        ]
+      }
+    ]
+  }
+}

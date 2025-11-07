@@ -1,0 +1,28 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "matrix",
+    "result": [
+      {
+        "metric": {
+          "namespace": "svc",
+          "job": "api"
+        },
+        "values": [
+          [
+            1731003000,
+            "100"
+          ],
+          [
+            1731003060,
+            "160"
+          ],
+          [
+            1731003120,
+            "220"
+          ]
+        ]
+      }
+    ]
+  }
+}

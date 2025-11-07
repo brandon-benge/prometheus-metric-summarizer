@@ -1,0 +1,16 @@
+LICENSE
+NOTICE
+README.md
+pyproject.toml
+src/prometheus_metric_summarizer.egg-info/PKG-INFO
+src/prometheus_metric_summarizer.egg-info/SOURCES.txt
+src/prometheus_metric_summarizer.egg-info/dependency_links.txt
+src/prometheus_metric_summarizer.egg-info/entry_points.txt
+src/prometheus_metric_summarizer.egg-info/top_level.txt
+src/promsum/__init__.py
+src/promsum/cli.py
+src/promsum/core.py
+src/promsum/counter.py
+src/promsum/gauge.py
+src/promsum/histogram.py
+src/promsum/summary.py
