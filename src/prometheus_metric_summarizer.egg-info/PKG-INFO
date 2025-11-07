@@ -24,7 +24,7 @@ pipelines** and AI-Ops.
 ./run_venv.sh
 
 # Or manually
-python -m venv .venv && source .venv/bin/activate
+python -m venv ../venv && source ../venv/bin/activate
 pip install -r requirements.txt
 python -m promsum.cli --metric-type gauge --input examples/sample_gauge.json
 ```
@@ -34,7 +34,7 @@ python -m promsum.cli --metric-type gauge --input examples/sample_gauge.json
 ### Installing for Development
 ```bash
 # Activate your virtual environment
-source .venv/bin/activate  # or ./run_venv.sh
+source ../venv/bin/activate  # or ./run_venv.sh
 
 # Install in editable mode
 pip install -e .

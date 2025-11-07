@@ -34,14 +34,16 @@ promsum --metric-type gauge --input examples/sample_gauge.json
 ### Building the Package
 ```bash
 # Install build tools
-pip install build
+pip install build twine
 
 # Build source distribution and wheel
 python -m build
 
 # Output will be in dist/
-# - prometheus-metric-summarizer-0.1.0.tar.gz
 # - prometheus_metric_summarizer-0.1.0-py3-none-any.whl
+# - prometheus_metric_summarizer-0.1.0.tar.gz
+# and it will be in your venv 
+which promsum     # shows you the location
 ```
 
 ### Testing
