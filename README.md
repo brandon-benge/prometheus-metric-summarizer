@@ -48,11 +48,14 @@ which promsum     # shows you the location
 
 ### Testing
 ```bash
-# Test with example files
+# Test with example files (basic output)
 promsum --metric-type counter --input examples/sample_counter.json
 promsum --metric-type gauge --input examples/sample_gauge.json
 promsum --metric-type histogram --input examples/sample_histogram.json
 promsum --metric-type summary --input examples/sample_summary.json
+
+# Include scrape interval analysis (data quality metrics)
+promsum --metric-type gauge --input examples/sample_gauge.json --include-scrape-analysis
 
 # Or using the module directly
 python -m promsum.cli --metric-type gauge --input examples/sample_gauge.json
@@ -65,6 +68,136 @@ pip install dist/prometheus_metric_summarizer-0.1.0-py3-none-any.whl
 
 # Or install the source distribution
 pip install dist/prometheus-metric-summarizer-0.1.0.tar.gz
+```
+
+## Using as a Python Library
+
+### Basic Usage
+
+```python
+from promsum.cli import summarize
+import json
+
+# Load your Prometheus range query result
+with open("examples/sample_gauge.json") as f:
+    data = f.read()
+
+# Get the summary as a JSON string
+result = summarize("gauge", data)
+print(result)
+
+# Or parse it as a dictionary
+summary_dict = json.loads(result)
+print(f"Metric type: {summary_dict[0]['metric_type']}")
+print(f"Mean value: {summary_dict[0]['stats']['mean']}")
+```
+
+### With Scrape Analysis
+
+```python
+from promsum.cli import summarize
+import json
+
+with open("examples/sample_gauge.json") as f:
+    data = f.read()
+
+# Include scrape analysis for data quality insights
+result = summarize("gauge", data, include_scrape_analysis=True)
+summary = json.loads(result)
+
+# Access scrape analysis data
+scrape_info = summary[0].get('scrape_analysis', {})
+print(f"Expected scrape interval: {scrape_info.get('expected_interval_seconds')}s")
+print(f"Missed scrapes: {scrape_info.get('missed_scrapes')}")
+print(f"Regularity: {scrape_info.get('scrape_regularity')}")
+```
+
+### Using Individual Summarizers
+
+```python
+from promsum.counter import summarize_counter
+from promsum.gauge import summarize_gauge
+from promsum.histogram import summarize_histogram
+from promsum.summary import summarize_summary
+import json
+
+# Load Prometheus data
+with open("examples/sample_histogram.json") as f:
+    prom_data = json.load(f)
+
+# Call summarizer directly
+result = summarize_histogram(prom_data, include_scrape_analysis=True)
+
+# Process results
+for metric in result:
+    stats = metric['stats']
+    print(f"Labels: {metric['labels']}")
+    print(f"Observations: {stats['count']}")
+    print(f"Average: {stats['avg']}")
+    print(f"P95: {stats['p95']}")
+    
+    # Check data quality
+    if 'scrape_analysis' in metric:
+        sa = metric['scrape_analysis']
+        if sa['missed_scrapes'] > 0:
+            print(f"⚠️  Warning: {sa['missed_scrapes']} scrapes were missed")
+        if sa['scrape_regularity'] == 'irregular':
+            print("⚠️  Warning: Irregular scrape intervals detected")
+```
+
+### Processing Multiple Metrics
+
+```python
+import json
+from promsum.gauge import summarize_gauge
+
+# Process multiple gauge metrics
+metric_files = [
+    "examples/sample_gauge.json",
+    # Add more files...
+]
+
+all_results = []
+for file_path in metric_files:
+    with open(file_path) as f:
+        data = json.load(f)
+    
+    summaries = summarize_gauge(data, include_scrape_analysis=True)
+    all_results.extend(summaries)
+
+# Filter for metrics with data quality issues
+problematic_metrics = [
+    m for m in all_results 
+    if m.get('scrape_analysis', {}).get('missed_scrapes', 0) > 5
+]
+
+print(f"Found {len(problematic_metrics)} metrics with >5 missed scrapes")
+```
+
+### Integration with Analysis Tools
+
+```python
+import json
+import pandas as pd
+from promsum.gauge import summarize_gauge
+
+# Load and summarize
+with open("examples/sample_gauge.json") as f:
+    data = json.load(f)
+
+summaries = summarize_gauge(data, include_scrape_analysis=True)
+
+# Convert to DataFrame for analysis
+df = pd.json_normalize(summaries)
+
+# Analyze data quality
+print("Data Quality Summary:")
+print(df[['labels', 'scrape_analysis.scrape_regularity', 
+         'scrape_analysis.missed_scrapes']].to_string())
+
+# Statistical analysis
+print(f"\nMean value across all series: {df['stats.mean'].mean()}")
+print(f"Max value observed: {df['stats.max'].max()}")
 ```
 
 ## Input format (exact Prometheus range-query shape)
@@ -109,6 +242,52 @@ All metric types include *time anchors*:
   quantiles (`p50`, `p90`, `p95`, `p99`) via bucket reconstruction, `dominant_bucket`.
 - **Summary**: `num_data_points` (scrape samples), `start/end timestamps`, `duration`, deltas for `_sum`/`_count`, `count` (observations), `avg=sum/count`, and
   quantiles grouped under `stats.quantiles`.
+
+## Scrape Analysis (Optional)
+
+Add `--include-scrape-analysis` to include data quality metrics:
+
+```bash
+promsum --metric-type gauge --input examples/sample_gauge.json --include-scrape-analysis
+```
+
+This adds a `scrape_analysis` object to each metric with:
+
+```json
+{
+  "scrape_analysis": {
+    "expected_interval_seconds": 15.0,
+    "missed_scrapes": 2,
+    "scrape_regularity": "mostly_regular",
+    "scrape_regularity_cv": 0.15,
+    "counter_resets_detected": 0,
+    "total_gaps": 9,
+    "irregular_gaps": 1
+  }
+}
+```
+
+### Scrape Analysis Fields
+
+- **expected_interval_seconds**: Median time between scrapes (robust against outliers)
+- **missed_scrapes**: Estimated number of missing data points based on gaps > 1.5x expected interval
+- **scrape_regularity**: Classification of scrape consistency
+  - `"regular"`: CV < 0.1 (very consistent scraping)
+  - `"mostly_regular"`: CV 0.1-0.3 (some variation)
+  - `"irregular"`: CV > 0.3 (high variation in scrape intervals)
+  - `"single_interval"`: Only 2 data points
+  - `"insufficient_data"`: Only 1 data point
+- **scrape_regularity_cv**: Coefficient of variation (stddev/mean) of intervals - technical metric for regularity
+- **counter_resets_detected**: (Counter metrics only) Number of times the counter value decreased (resets)
+- **total_gaps**: Total number of intervals between data points
+- **irregular_gaps**: Number of gaps exceeding 1.5x the expected interval
+
+### Use Cases for Scrape Analysis
+
+- **Data Quality Assessment**: Identify metrics with unreliable scraping
+- **Troubleshooting**: Detect scrape targets that went down (large gaps)
+- **Counter Reset Detection**: Find when counters were reset (app restarts, etc.)
+- **SLO Validation**: Ensure monitoring meets collection frequency requirements
 
 ## LLM Prompt Examples
 
@@ -201,6 +380,30 @@ Histogram/Summary metrics:
 - Example: num_data_points=9 (scraped 9 times), count=50000 (50k HTTP requests handled)
 
 When analyzing: num_data_points/count tells you about the data collection frequency, while the "count" field in histograms/summaries tells you about actual system activity.
+```
+
+### Scrape Analysis Fields (Optional)
+```
+When --include-scrape-analysis is used, each metric includes a scrape_analysis object:
+
+{
+  "expected_interval_seconds": 15.0,     // Median time between scrapes
+  "missed_scrapes": 2,                   // Estimated missing data points
+  "scrape_regularity": "mostly_regular", // regular | mostly_regular | irregular
+  "scrape_regularity_cv": 0.15,          // Coefficient of variation (technical)
+  "counter_resets_detected": 0,          // Counter metrics only: # of resets
+  "total_gaps": 9,                       // Total intervals analyzed
+  "irregular_gaps": 1                    // Gaps > 1.5x expected interval
+}
+
+Interpretation guidance:
+- missed_scrapes > 0: Data collection had gaps (target down, network issues, etc.)
+- scrape_regularity "irregular": Unreliable scraping, use data cautiously
+- counter_resets_detected > 0: Application restarted or counter reset
+- irregular_gaps / total_gaps > 0.2: More than 20% of intervals were irregular
+
+Example: "The metric was scraped every ~15 seconds with mostly_regular consistency. 
+However, 2 scrapes were missed, suggesting brief collection interruptions."
 ```
 
 ## License

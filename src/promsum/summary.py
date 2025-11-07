@@ -1,8 +1,9 @@
 from typing import Any, Dict, List, DefaultDict
 from collections import defaultdict
 from .core import parse_prom_range_json, coerce_values
+from .scrape_analysis import analyze_scrape_intervals
 
-def summarize_summary(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
+def summarize_summary(obj: Dict[str, Any], include_scrape_analysis: bool = False) -> List[Dict[str, Any]]:
     grouped: DefaultDict[tuple, Dict[str, Any]] = defaultdict(lambda: {
         "labels": {}, "quantiles": {}, "sum": None, "count": None, "starts": [], "ends": []
     })
@@ -53,7 +54,7 @@ def summarize_summary(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
                 if isinstance(q_val, dict) and "quantiles" in q_key:
                     break
 
-        results.append({
+        result = {
             "labels": rec["labels"],
             "metric_type": "summary",
             "stats": {
@@ -66,5 +67,16 @@ def summarize_summary(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "avg": avg,
                 "quantiles": rec["quantiles"],
             },
-        })
+        }
+        
+        # Scrape interval analysis (use count series if available, else sum)
+        if include_scrape_analysis:
+            if rec["count"] is not None:
+                ts, vs = coerce_values(rec["count"])
+                result["scrape_analysis"] = analyze_scrape_intervals(ts, vs, is_counter=True)
+            elif rec["sum"] is not None:
+                ts, vs = coerce_values(rec["sum"])
+                result["scrape_analysis"] = analyze_scrape_intervals(ts, vs, is_counter=True)
+        
+        results.append(result)
     return results

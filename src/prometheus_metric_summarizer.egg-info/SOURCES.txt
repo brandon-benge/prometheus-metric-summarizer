@@ -13,4 +13,5 @@ src/promsum/core.py
 src/promsum/counter.py
 src/promsum/gauge.py
 src/promsum/histogram.py
+src/promsum/scrape_analysis.py
 src/promsum/summary.py

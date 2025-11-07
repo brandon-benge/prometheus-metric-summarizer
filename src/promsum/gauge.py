@@ -1,8 +1,9 @@
 from typing import Any, Dict, List
 from statistics import mean, median, pstdev
 from .core import parse_prom_range_json, coerce_values, linear_regression_slope, classify_trend
+from .scrape_analysis import analyze_scrape_intervals
 
-def summarize_gauge(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
+def summarize_gauge(obj: Dict[str, Any], include_scrape_analysis: bool = False) -> List[Dict[str, Any]]:
     results = []
     for series in parse_prom_range_json(obj):
         labels = dict(series.get("metric", {}))
@@ -16,7 +17,8 @@ def summarize_gauge(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
         trend = classify_trend(vs[0], vs[-1], mx - mn, slope)
         start_ts, end_ts = ts[0], ts[-1]
         duration = max(1e-9, end_ts - start_ts)
-        results.append({
+        
+        result = {
             "labels": labels,
             "metric_type": "gauge",
             "stats": {
@@ -34,5 +36,10 @@ def summarize_gauge(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "trend": trend,
                 "change_over_window": round(change, 12),
             },
-        })
+        }
+        
+        if include_scrape_analysis:
+            result["scrape_analysis"] = analyze_scrape_intervals(ts, vs, is_counter=False)
+        
+        results.append(result)
     return results

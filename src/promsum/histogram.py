@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Tuple
 from .core import parse_prom_range_json, coerce_values
+from .scrape_analysis import analyze_scrape_intervals
 
 def _group_histogram_series(result: List[Dict[str, Any]]) -> Dict[Tuple[Tuple[str,str], ...], Dict[str, Any]]:
     groups: Dict[Tuple[Tuple[str,str], ...], Dict[str, Any]] = {}
@@ -50,7 +51,7 @@ def _reconstruct_quantiles(bucket_edges: List[float], bucket_counts: List[float]
         return bucket_edges[-1]
     return {"p50": quantile(0.50), "p90": quantile(0.90), "p95": quantile(0.95), "p99": quantile(0.99)}
 
-def summarize_histogram(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
+def summarize_histogram(obj: Dict[str, Any], include_scrape_analysis: bool = False) -> List[Dict[str, Any]]:
     raw = parse_prom_range_json(obj)
     groups = _group_histogram_series(raw)
     results = []
@@ -122,7 +123,7 @@ def summarize_histogram(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
         # Count of data points (use the first bucket's value count)
         num_values = len(coerce_values(buckets[0]["values"])[1]) if buckets else 0
 
-        results.append({
+        result = {
             "labels": labels,
             "metric_type": "histogram",
             "stats": {
@@ -139,5 +140,19 @@ def summarize_histogram(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "p99": quants["p99"],
                 "dominant_bucket": dom_bucket,
             },
-        })
+        }
+        
+        # Scrape interval analysis (use count series if available, else sum, else first bucket)
+        if include_scrape_analysis:
+            if g.get("count") is not None:
+                ts, vs = coerce_values(g["count"])
+                result["scrape_analysis"] = analyze_scrape_intervals(ts, vs, is_counter=True)
+            elif g.get("sum") is not None:
+                ts, vs = coerce_values(g["sum"])
+                result["scrape_analysis"] = analyze_scrape_intervals(ts, vs, is_counter=True)
+            elif buckets:
+                ts, vs = coerce_values(buckets[0]["values"])
+                result["scrape_analysis"] = analyze_scrape_intervals(ts, vs, is_counter=True)
+        
+        results.append(result)
     return results

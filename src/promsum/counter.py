@@ -1,7 +1,8 @@
 from typing import Any, Dict, List
 from .core import parse_prom_range_json, coerce_values
+from .scrape_analysis import analyze_scrape_intervals
 
-def summarize_counter(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
+def summarize_counter(obj: Dict[str, Any], include_scrape_analysis: bool = False) -> List[Dict[str, Any]]:
     results = []
     for series in parse_prom_range_json(obj):
         labels = dict(series.get("metric", {}))
@@ -12,7 +13,8 @@ def summarize_counter(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
         duration = max(1e-9, end_ts - start_ts)
         rps = delta / duration
         rpm = rps * 60.0
-        results.append({
+        
+        result = {
             "labels": labels,
             "metric_type": "counter",
             "stats": {
@@ -27,5 +29,10 @@ def summarize_counter(obj: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "rate_per_second": rps,
                 "rate_per_minute": rpm
             },
-        })
+        }
+        
+        if include_scrape_analysis:
+            result["scrape_analysis"] = analyze_scrape_intervals(ts, vs, is_counter=True)
+        
+        results.append(result)
     return results
